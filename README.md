@@ -118,3 +118,4 @@ After A is empty, while B is not empty:
 We extract the largest from B, and then we push it to A
 Stack A ends up fully sorted in ascending order.
 
+FINALLY
