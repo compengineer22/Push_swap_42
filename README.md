@@ -1,121 +1,235 @@
-This project has been created as part of the 42 curriculum by hsrour
+This project has been created as part of the 42 curriculum by hsrour, gbaghsar
 
-Push_Swap
-Description
-Push Swap is a sorting project where the goal is to sort a stack of integers using a limited set of operations and two stacks a and b. The challenge is not only to sort correctly, but to do so using the minimum number of operations.
+---
 
-The goal
-The goal is to create 3 different sorting algorithms to sort stack a using stack b. The sorting algorithms should have 3 different time complexities:
+# push_swap
 
-O(n²)
-O(n√n)
-O(nlog(n))
-Instructions
-Allowed Operations
-For Swapping:
+> Sort integers on a stack using the fewest possible operations.
 
-sato swap the first two elements of stack a.
-sbto swap the first two elements of stack b.
-ssruns sa and sb at the same time.
-For Pushing:
+---
 
-pato push the top element from b to a.
-pbto push the top element from a to b.
-For Rotating:
+## Description
 
-rato rotate stack a up.
-rbto rotate stack b up.
-rrruns ra and rb at the same time.
-For Reverse Rotating:
+**push_swap** is a sorting algorithm project from the 42 curriculum. The goal is to sort a list of integers loaded onto **stack A** using only two stacks (A and B) and a restricted set of operations, while minimising the total number of operations used.
 
-rrato rotate stack a down.
-rrbto rotate stack b down.
-rrrruns rra and rrb at the same time.
-Every operation prints its name when used, unless the --bench selector is used. When used, the --bench selector prints a summary of the work done by the program to the stderr. All the operations were implemented, included in the header file, and each algroithm used the necessary operations.
+What makes this challenging is that classical sorting algorithms cannot be applied directly — every "comparison" and "move" must be expressed as one of eleven specific stack operations. The project forces a deep understanding of algorithmic complexity by requiring four distinct sorting strategies, each suited to a different level of input disorder.
 
-Compilation
-To compile, we use:
+### Available Operations
 
-make
-To clean object files:
+| Operation | Description                           |
+| --------- | ------------------------------------- |
+| `sa`      | Swap the top two elements of stack A  |
+| `sb`      | Swap the top two elements of stack B  |
+| `ss`      | `sa` and `sb` simultaneously          |
+| `pa`      | Push the top of B onto A              |
+| `pb`      | Push the top of A onto B              |
+| `ra`      | Rotate A upward (first becomes last)  |
+| `rb`      | Rotate B upward (first becomes last)  |
+| `rr`      | `ra` and `rb` simultaneously          |
+| `rra`     | Reverse rotate A (last becomes first) |
+| `rrb`     | Reverse rotate B (last becomes first) |
+| `rrr`     | `rra` and `rrb` simultaneously        |
 
-make clean
-To remove all generated files:
+---
 
-make fclean
-To recompile:
+## Instructions
 
-make re
-Testing
-to test the code:
+### Compilation
 
-./push_swap "753 537 84 83 72 71 20 19 17 10 8 7 1 0 -32"
-to test random generated numbers:
+```bash
+make        # builds push_swap
+make bonus  # builds checker (bonus)
+make clean  # removes object files
+make fclean # removes object files and binaries
+make re     # fclean + make
+```
 
-shuf -i 0-9999 -n 500 > args.txt ; ./push_swap $(cat args.txt)
-to count the operations, you add:
+### Usage
 
-| wc -l
-Error Handling
-The program displays Error and exits if:
+```bash
+# Basic usage — outputs the sorted operation sequence
+./push_swap 3 1 4 1 5 9 2 6
 
-Non-numeric arguments are provided "which only accepts having a maximun of 2 non duplicate selectors, not of the same type and should start with --".
-Duplicate Numbers are detected.
-Numbers exceed integer limits.
-If Numbers are not stacked at the end of the line.
-Constraints
-Written in C
-No memory leaks
-Norm-compliant (42 Norminette)
-Norminette
-Resources
-AI was used to make the README.md file more formal.
+# Force a specific algorithm
+./push_swap --simple   5 4 3 2 1
+./push_swap --medium   5 4 3 2 1
+./push_swap --complex  5 4 3 2 1
+./push_swap --adaptive 5 4 3 2 1
 
-Algorithms
-The Selection Sort
-This Algorithm is a O(n²). This Sorting Algorithm is used if the selectore is "--simple" or if "--adaptive" and the disorder < 0.2 or no selectore precised. The code sorts numbers using two stacks A and B by repeatedly taking the smallest element from stack A and moving it to stack B.
+# Benchmark mode — prints disorder %, strategy, and op counts to stderr
+./push_swap --bench --adaptive 5 4 3 2 1
+./push_swap --bench --simple   5 4 3 2 1
 
-The steps:
+# Pass numbers as a single quoted string
+./push_swap "3 1 4 1 5"
 
-While stack A is not empty:
+# Count total operations
+ARG="4 67 3 87 23"; ./push_swap --adaptive $ARG | wc -l
 
-Find where the smallest value is and move it to the top, but to minimizes the number of operations, we can:
-"rotate (ra) if it’s closer to the top or revrotate (rra) if it’s closer to the bottom".
-Push it to stack B;(pb).
-Stack B now contains all elements, ordered from largest (top) to smallest (bottom).
-After A is empty, While B is not empty:
+# Verify correctness with the checker (bonus)
+ARG="4 67 3 87 23"; ./push_swap --complex $ARG | ./checker $ARG
 
-Push everything back from stack B to stack A;(pa).
-Stack A ends up fully sorted in ascending order.
+# Large input test
+shuf -i 0-9999 -n 500 > args.txt
+./push_swap $(cat args.txt) | wc -l
+```
 
-The Medium Sort
-This Algorithm is a O(n√n). This Sorting Algorithm is used if the selectore is "--medium" or if "--adaptive" and 0.2 ≤ disorder < 0.5 or no selectore precised. The code sorts numbers using two stacks A and B by repeatedly taking chunks of the smallest elements from stack A and moving it to stack B.
+### Error Handling
 
-The Steps:
+The program prints `Error` to stderr and exits on:
 
-While stack A is not empty:
+- Non-integer arguments
+- Integer overflow (out of `int` range)
+- Duplicate values
+- Invalid flags
 
-Take chunks of size (√n) where n is the number of elements by repeatedly rotating (ra) if it’s closer to the top or revrotating (rra) if it’s closer to the bottom.
-Pushing the elements to stack B;pb when found.
-Stack B now contains all elements, ordered from largest (top) to smallest (bottom).
-After A is empty, while B is not empty:
+```bash
+./push_swap 0 one 2 3     # Error
+./push_swap 3 2 3         # Error (duplicate)
+./push_swap               # no output, exits cleanly
+```
 
-We extract the largest from B, and then we push it to A
-Stack A ends up fully sorted in ascending order.
+---
 
-The Complex Sort
-The complexity is (nlog(n)) This Sorting Algorithm is used if the selectore is "--complex" or if "--adaptive" and disorder >=0.5 or no selectore precised. The code sorts numbers using two stacks A and B by repeatedly taking chunks of the smallest elements from stack A and moving it to stack B.
+## Algorithm Design & Justification
 
-The Steps:
+The program measures **disorder** before sorting — a value between `0.0` (perfectly sorted) and `1.0` (fully reversed) computed as the fraction of inverted pairs:
 
-While stack A is not empty:
+```
+disorder = (number of pairs where a[i] > a[j] for i < j) / total pairs
+```
 
-Take (log(n)) chunks of n / (log(n)) size where n is the number of elements by repeatedly rotating (ra) if it’s closer to the top or revrotating (rra) if it’s closer to the bottom.
-Pushing the elements to stack B;pb when found.
-Stack B now contains all elements, ordered from largest (top) to smallest (bottom).
-After A is empty, while B is not empty:
+This score drives the **adaptive** strategy, and the four strategies are available individually via flags.
 
-We extract the largest from B, and then we push it to A
-Stack A ends up fully sorted in ascending order.
+---
 
-FINALLY
+### 1. Simple — O(n²) — `--simple`
+
+**Algorithm:** Selection sort via repeated minimum extraction.
+
+**How it works:**
+
+1. Scan stack A, find the minimum value's position.
+2. Rotate A (forward or backward, whichever is shorter) to bring it to the top.
+3. Push it to B.
+4. Repeat until A is empty.
+5. Push everything from B back to A.
+
+Since elements are pushed to B in ascending order (smallest first), pushing them all back to A restores them in sorted order (smallest ends up on top).
+
+**Why O(n²):** Each of the n extractions may require up to n/2 rotations to locate and surface the minimum — giving O(n) work per extraction and O(n²) total.
+
+**Best for:** Nearly-sorted inputs (disorder < 0.2), where the minimum is usually already near the top, making each extraction cheap.
+
+---
+
+### 2. Medium — O(n√n) — `--medium`
+
+**Algorithm:** Chunk-based sort with threshold partitioning.
+
+**How it works — Phase 1 (push chunks to B):**
+
+1. Compute chunk size = `√n` (via `radical(length)`).
+2. Use a partial selection sort on the values to find the `chunk_size`-th smallest value — the **threshold**.
+3. Mark all nodes with `value ≤ threshold` as rank 0 (current chunk).
+4. Scan A and push every rank-0 node to B (using direction-optimised rotations).
+5. Repeat with the next chunk until A is empty.
+
+**How it works — Phase 2 (extract maximums back to A):**
+
+1. Find the maximum remaining in B.
+2. Rotate B (forward or backward, whichever is shorter) to bring it to the top.
+3. Push it to A.
+4. Repeat n times.
+
+Because maximums are extracted in descending order and pushed onto A, larger values sink to the bottom first and the smallest arrives last — leaving A sorted ascending from top to bottom.
+
+**Why O(n√n):** Phase 1 does n pushes with O(√n) average rotation cost each = O(n√n). Phase 2 does n extractions with O(√n) average rotation cost each = O(n√n). The chunk structure ensures B always has local order, keeping rotation costs low.
+
+**Best for:** Medium disorder inputs (0.2 ≤ disorder < 0.5).
+
+---
+
+### 3. Complex — O(n log n) — `--complex`
+
+**Algorithm:** LSD (Least Significant Bit first) Radix Sort.
+
+**How it works:**
+
+1. **Normalise:** Replace each value with its rank (0-based sorted position). This ensures all values are non-negative and contiguous — required for bit manipulation.
+2. **Compute bits:** Determine how many bit passes are needed: `bits = ⌈log₂(n)⌉`.
+3. **For each bit position i (LSB to MSB):**
+   - Iterate through all elements in A:
+     - If bit `i` of the element's rank is **1** → `ra` (keep in A, rotate to bottom).
+     - If bit `i` of the element's rank is **0** → `pb` (push to B).
+   - Push everything from B back to A.
+
+After all bit passes, ranks in A are in ascending order 0..n-1, which corresponds to the original values being sorted.
+
+**Why O(n log n):** Each of the `log₂(n)` passes touches all n elements exactly once = O(n log n) total operations. The number of passes is determined purely by the input size, not its disorder.
+
+**Best for:** Highly disordered inputs (disorder ≥ 0.5) and large inputs where the guaranteed logarithmic pass count pays off.
+
+---
+
+### 4. Adaptive — `--adaptive` (default)
+
+**Algorithm:** Automatically selects the best strategy based on the measured disorder.
+
+```
+disorder < 0.2   →  Simple   O(n²)       (nearly sorted, few moves needed)
+0.2 ≤ disorder < 0.5  →  Medium   O(n√n)  (moderate disorder, chunks effective)
+disorder ≥ 0.5   →  Complex  O(n log n)  (high disorder, radix guaranteed)
+```
+
+Before calling any main algorithm, `handler()` is always run first to handle the trivially small cases (2–5 elements) with hardcoded optimal move sequences, avoiding unnecessary overhead.
+
+**Threshold rationale:**
+
+- `0.2` is the boundary below which a nearly-sorted array has so few inversions that the O(n²) simple sort performs fewer actual operations than chunk sort's setup overhead.
+- `0.5` is the midpoint of possible disorder. Beyond this, the input is more inverted than sorted, and radix sort's predictable O(n log n) behaviour outperforms chunk sort's O(n√n) average.
+
+---
+
+### Small-Input Handler (2–5 elements)
+
+Before any main algorithm, `handler()` applies hardcoded optimal sequences:
+
+- **2 elements:** swap if out of order. (1 op max)
+- **3 elements:** 6 possible orderings → handled by `handle_3` + `handle_3_2` with at most 2 ops.
+- **4 elements:** move minimum to B, sort remaining 3, push back. (~5 ops max)
+- **5 elements:** move two smallest to B, sort remaining 3, restore B in correct order, push back. (~9 ops max)
+
+---
+
+### Performance Targets
+
+| Input Size  | Pass        | Good       | Excellent  |
+| ----------- | ----------- | ---------- | ---------- |
+| 100 numbers | < 2000 ops  | < 1500 ops | < 700 ops  |
+| 500 numbers | < 12000 ops | < 8000 ops | < 5500 ops |
+
+---
+
+## Resources
+
+### Classic References
+
+- **Donald Knuth** — _The Art of Computer Programming, Vol. 3: Sorting and Searching_ — the foundational reference for sorting algorithms and complexity analysis.
+- **Radix Sort (LSD)** — [Wikipedia: Radix sort](https://en.wikipedia.org/wiki/Radix_sort)
+- **Selection Sort** — [Wikipedia: Selection sort](https://en.wikipedia.org/wiki/Selection_sort)
+- **Big-O Notation** — [Big-O Cheat Sheet](https://www.bigocheatsheet.com/)
+- **Stack (data structure)** — [Wikipedia: Stack](<https://en.wikipedia.org/wiki/Stack_(abstract_data_type)>)
+
+### 42-Specific Resources
+
+- The official `push_swap` subject (this repository)
+- `checker_linux` / `checker_Mac` — provided binaries for validating operation sequences
+
+### AI Usage
+
+1. To test edge cases and debugging.
+2. For explanation and clarity.
+3. Readme creation.
+
+All AI-generated explanations were verified by manually tracing through the code and cross-checking with the actual implementation. No AI-generated code was directly used in the project.
